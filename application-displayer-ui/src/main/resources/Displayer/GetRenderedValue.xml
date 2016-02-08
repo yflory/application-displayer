@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xwikidoc reference="Displayer.GetRenderedValue" locale="">
+<web>Displayer</web>
+<name>GetRenderedValue</name>
+<language></language>
+<defaultLanguage></defaultLanguage>
+<translation>0</translation>
+<parent>Main.WebHome</parent>
+<creator>XWiki.Admin</creator>
+<author>XWiki.Admin</author>
+<customClass></customClass>
+<contentAuthor>XWiki.Admin</contentAuthor>
+<creationDate>1454490932000</creationDate>
+<date>1454924690000</date>
+<contentUpdateDate>1454684375000</contentUpdateDate>
+<version>67.1</version>
+<title>GetRenderedValue</title>
+<defaultTemplate></defaultTemplate>
+<validationScript></validationScript>
+<comment></comment>
+<minorEdit>false</minorEdit>
+<syntaxId>xwiki/2.1</syntaxId>
+<hidden>true</hidden>
+<content>{{velocity}} 
+#if($request.document &amp;&amp; $request.obj &amp;&amp; $request.number &amp;&amp; $request.prop)
+  #set($docRef = $services.model.resolveDocument($request.document))
+  #set($document = $xwiki.getDocument($docRef))
+  #set($object = $document.getObject($request.obj, $request.number))
+  $object.display($request.prop, "view")
+#end
+#if(!$request.obj)
+  **Error** : No class name provided!
+#end
+#if(!$request.number)
+  **Error** : No object number provided!
+#end
+#if(!$request.prop)
+  **Error** : No property name provided!
+#end
+#if(!$request.document)
+  **Error** : No document provided!
+#end
+{{/velocity}}</content></xwikidoc>
