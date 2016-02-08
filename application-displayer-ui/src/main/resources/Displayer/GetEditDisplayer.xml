@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<xwikidoc reference="Displayer.GetRenderedValue" locale="">
+<xwikidoc reference="Displayer.GetEditDisplayer" locale="">
 <web>Displayer</web>
-<name>GetRenderedValue</name>
+<name>GetEditDisplayer</name>
 <language></language>
 <defaultLanguage></defaultLanguage>
 <translation>0</translation>
-<parent>Main.WebHome</parent>
+<parent>Displayer.GetRenderedValue</parent>
 <creator>XWiki.Admin</creator>
 <author>XWiki.Admin</author>
 <customClass></customClass>
 <contentAuthor>XWiki.Admin</contentAuthor>
-<creationDate>1454490932000</creationDate>
+<creationDate>1454939382000</creationDate>
 <date>1454949943000</date>
 <contentUpdateDate>1454949943000</contentUpdateDate>
 <version>1.1</version>
-<title>GetRenderedValue</title>
+<title>GetEditDisplayer</title>
 <defaultTemplate></defaultTemplate>
 <validationScript></validationScript>
 <comment>Imported from XAR</comment>
@@ -26,7 +26,7 @@
   #set($docRef = $services.model.resolveDocument($request.document))
   #set($document = $xwiki.getDocument($docRef))
   #set($object = $document.getObject($request.obj, $request.number))
-  $object.display($request.prop, "view")
+  $object.display($request.prop, "edit")
 #end
 #if(!$request.obj)
   **Error** : No class name provided!

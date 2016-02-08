@@ -11,13 +11,13 @@
 <customClass></customClass>
 <contentAuthor>XWiki.Admin</contentAuthor>
 <creationDate>1453481584000</creationDate>
-<date>1454924685000</date>
-<contentUpdateDate>1453481584000</contentUpdateDate>
-<version>344.1</version>
+<date>1454950212000</date>
+<contentUpdateDate>1454949943000</contentUpdateDate>
+<version>2.1</version>
 <title></title>
 <defaultTemplate></defaultTemplate>
 <validationScript></validationScript>
-<comment></comment>
+<comment>Imported from XAR</comment>
 <minorEdit>false</minorEdit>
 <syntaxId>xwiki/2.1</syntaxId>
 <hidden>true</hidden>
@@ -102,10 +102,12 @@
 </property>
 <property>
 <code>require.config({
-    paths: { "xapp": "$!services.webjars.url('org.xwiki.contrib:api-structured-data-js', 'api-structured-data.js')" }
+    paths: {
+      "xapp": "$!services.webjars.url('org.xwiki.contrib:api-structured-data-js', 'api-structured-data.js')",
+    }
 });
 
-require(['xapp', 'jquery', 'xwiki-meta'], function(XApp, $, xm) {
+require(['xapp', "$xwiki.getDocument('Displayer.DisplayEditorJS').getURL('jsx')", 'jquery', 'xwiki-meta'], function(XApp, DSP, $, xm) {
 
   // Velocity code
   var AJAX_RENDERER_PATH = "$xwiki.getDocument('Displayer.GetRenderedValue').getURL()";
@@ -131,10 +133,6 @@ require(['xapp', 'jquery', 'xwiki-meta'], function(XApp, $, xm) {
     // Get the property data from the displayer id
     var id = $(viewDiv).attr('data-xwiki-property');
     var options = getPropDataFromDiv(viewDiv);
-    var docName = options.document;
-    var className = options.obj;
-    var objNumber = options.number;
-    var propName = options.prop;
     // Display the edit field and hide the view one
     var editDiv = $('div[data-xwiki-property-edit="'+id+'"]');
     $(editDiv).css({"minHeight" : $(viewDiv).outerHeight()+"px"});
@@ -150,106 +148,9 @@ require(['xapp', 'jquery', 'xwiki-meta'], function(XApp, $, xm) {
       map[e.keyCode] = e.type == 'keydown';
       if((map[13] &amp;&amp; map[17]) || (map[13] &amp;&amp; $(this).find("textarea").length == 0)) {
         map = [];
-        saveField(viewDiv, editDiv, docName, className, objNumber, propName);
+        DSP.saveField(viewDiv, editDiv, options);
       }
     });
-  }
-
-  /**
-   * Start the saving process
-   * - Get the item
-   * - Change and store its value
-   * - Display the rendered content
-   */
-  var saveField = function(viewDiv, editDiv, docName, className, objNumber, propName) {
-    // Get the application related to the object class in the API
-    var app = XApp.getApp(className);
-    // Get the value of the field, and for lists the label associated
-    var inputElmt = $(editDiv).find("input, select, textarea");
-    $(inputElmt).attr("readonly", "readonly");
-    var valueInpt = $(inputElmt).val();
-    var valueLabel = null;
-    if($(inputElmt).is("select")) {
-      valueLabel = $(inputElmt).find(":selected").text();
-    }
-    // Get the item from the API
-    var itemId = docName+'|'+objNumber;
-    app.getItem(itemId, callback_item(viewDiv, propName, valueInpt, valueLabel, app, itemId));
-  }
-
-  /**
-   * Actions to execute once "app.getItem()" is completed :
-   * - Change the value of the selected field
-   * - Store the item with the API
-   * - If we have a label, skip the rendering step and display the new value
-   */
-  var callback_item = function(div, propName, valueInpt, valueLabel, app, itemId) {
-    return function(err, data) {
-      if(err) {throw err;}
-      data[propName] = valueInpt;
-      // Display a dash when the new value is empty : an empty value would hide the viewdiv permanently!
-      if(valueInpt == "") {
-        $(div).attr('data-xwiki-property-empty', '1');
-        valueInpt = '-';
-      }
-      else {
-        $(div).attr('data-xwiki-property-empty', '0');
-      }
-      // Check if we have a label for the value (List, checkbox, radio, etc.)
-      // If there is no label, the content must be rendered (velocity, wiki sytax, ...)
-      var toRender = (valueLabel === null);
-      var valueText = toRender ? valueInpt : valueLabel;
-      if(!toRender || valueText === '') { // No rendering necessary
-        callback_render(div, null, valueText);
-        valueInpt = null;
-      }
-      app.storeItem(itemId, data, callback_save(div, valueInpt));
-    }
-  }
-  /**
-   * Actions to execute once the modifications are saved in the wiki :
-   * - Display the notification at the bottom of the screen
-   * - Get the rendered value of the field
-   */
-  var callback_save = function(div, valueInpt) {
-    return function(err, data) {
-      if(err) {throw err;}
-      $('#dataDisplayerNotifications').html('&lt;div class="xnotification-wrapper"&gt;&lt;div class="xnotification xnotification-done"&gt;Saved&lt;/div&gt;&lt;/div&gt;').delay(1000).queue(function(n) {
-        $(this).html('');
-        n();
-      });
-      if(valueInpt) {
-        getRenderedContent(valueInpt, div, callback_render);
-      }
-    }
-  }
-  var getRenderedContent = function(content, div, callback) {
-    var options = getPropDataFromDiv(div);
-    $.ajax({
-      url : AJAX_RENDERER_PATH + "?xpage=plain",
-      type : "POST",
-      data : $.param(options)
-    }).success(function(data) {
-      callback(div, data);
-    });
-  }
-  /**
-   * Actions to execute once we've received the final value :
-   * - Change the viewDiv content
-   * - Display the viewDiv and hide the editDiv
-   */
-  var callback_render = function(div, htmlContent, textContent) {
-    var id = $(div).attr('data-xwiki-property');
-    if(textContent) {
-      $(div).find("p").text(textContent);
-    }
-    else {
-      $(div).html(htmlContent);
-    }
-    $(div).show();
-    var editDiv = $('div[data-xwiki-property-edit="'+id+'"]');
-    $(editDiv).find("input, select, textarea").removeAttr("readonly");
-    $('div[data-xwiki-property-edit="'+id+'"]').hide();
   }
 
   /**
@@ -273,25 +174,13 @@ require(['xapp', 'jquery', 'xwiki-meta'], function(XApp, $, xm) {
     }
   }
 
-  /**
-   * Close all edit displayers
-   */
-  var closeAllEditors = function() {
-    $('div[data-xwiki-property]').show();
-    $('div[data-xwiki-property-edit]').hide();
-  }
-
   // Add the save and cancel icons
   var saveEditor = function(e) {
     var editDiv = $(this).parent().parent();
     var id = $(editDiv).attr('data-xwiki-property-edit');
     var viewDiv = $('div[data-xwiki-property="'+id+'"]');
     var options = getPropDataFromDiv(viewDiv);
-    var docName = options.document;
-    var className = options.obj;
-    var objNumber = options.number;
-    var propName = options.prop;
-    saveField(viewDiv, editDiv, docName, className, objNumber, propName);
+    DSP.saveField(viewDiv, editDiv, options);
   }
   $('div[data-xwiki-property-edit]').each(function(idx, elmt) {
     $(elmt).append('&lt;div class="dynamic-displayer-rightPanelEdit"&gt;'+CHECK_ICON+CROSS_ICON+'&lt;/div&gt;');
@@ -312,6 +201,14 @@ require(['xapp', 'jquery', 'xwiki-meta'], function(XApp, $, xm) {
     $(this).find(".dynamic-displayer-rightPanel").hide();
   });
 
+  /**
+   * Close all edit displayers
+   */
+  var closeAllEditors = function() {
+    $('div[data-xwiki-property]').show();
+    $('div[data-xwiki-property-edit]').hide();
+  }
+
   // Close the edit displayers when the user clicks elsewhere in the page
   $('html').click(closeAllEditors);
   $('div[data-xwiki-property-edit]').click(function(e){e.stopPropagation();});
@@ -319,6 +216,240 @@ require(['xapp', 'jquery', 'xwiki-meta'], function(XApp, $, xm) {
 </property>
 <property>
 <name>EditDisplay</name>
+</property>
+<property>
+<parse>1</parse>
+</property>
+<property>
+<use>always</use>
+</property>
+</object>
+<object>
+<class>
+<name>XWiki.JavaScriptExtension</name>
+<customClass></customClass>
+<customMapping></customMapping>
+<defaultViewSheet></defaultViewSheet>
+<defaultEditSheet></defaultEditSheet>
+<defaultWeb></defaultWeb>
+<nameField></nameField>
+<validationScript></validationScript>
+<cache>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>0</multiSelect>
+<name>cache</name>
+<number>5</number>
+<prettyName>Caching policy</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>|, </separators>
+<size>1</size>
+<unmodifiable>0</unmodifiable>
+<values>long|short|default|forbid</values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</cache>
+<code>
+<disabled>0</disabled>
+<name>code</name>
+<number>2</number>
+<prettyName>Code</prettyName>
+<rows>20</rows>
+<size>50</size>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+</code>
+<name>
+<disabled>0</disabled>
+<name>name</name>
+<number>1</number>
+<prettyName>Name</prettyName>
+<size>30</size>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+</name>
+<parse>
+<disabled>0</disabled>
+<displayFormType>select</displayFormType>
+<displayType>yesno</displayType>
+<name>parse</name>
+<number>4</number>
+<prettyName>Parse content</prettyName>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+</parse>
+<use>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>0</multiSelect>
+<name>use</name>
+<number>3</number>
+<prettyName>Use this extension</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>|, </separators>
+<size>1</size>
+<unmodifiable>0</unmodifiable>
+<values>currentPage|onDemand|always</values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</use>
+</class>
+<name>Displayer.JS</name>
+<number>1</number>
+<className>XWiki.JavaScriptExtension</className>
+<guid>6860625d-2c8d-4720-88ea-496a18852a5c</guid>
+<property>
+<cache>long</cache>
+</property>
+<property>
+<code>require.config({
+    paths: { "xapp": "$!services.webjars.url('org.xwiki.contrib:api-structured-data-js', 'api-structured-data.js')" }
+});
+
+var rowList = [];
+document.observe("xwiki:livetable:newrow", function(event){
+  rowList.push(event.memo);
+});
+
+document.observe("xwiki:livetable:displayComplete", function(event){
+  require(['xapp', "$xwiki.getDocument('Displayer.DisplayEditorJS').getURL('jsx', 'minify=false')", 'jquery', 'xwiki-meta', 'xwiki-events-bridge'], function(XApp, DSP, $, xm) {
+
+    // Velocity code
+    var AJAX_RENDERER_PATH = "$xwiki.getDocument('Displayer.GetEditDisplayer').getURL()";
+    // End Velocity code
+
+    var CHECK_ICON = '&lt;div class="displayer-icon-check" title="Save the changes"&gt;&lt;span class="fa fa-check"&gt;&lt;/span&gt;&lt;/div&gt;';
+    var CROSS_ICON = '&lt;div class="displayer-icon-cross" title="Close the editor"&gt;&lt;span class="fa fa-times"&gt;&lt;/span&gt;&lt;/div&gt;';
+    var EDIT_ICON = '&lt;div class="displayer-icon-edit" title="Open the editor"&gt;&lt;span class="fa fa-pencil"&gt;&lt;/span&gt;&lt;/div&gt;';
+
+    var RIGHT_PANEL_CLASS = "dynamic-displayer-ltRightPanel";
+    var VIEW_FIELD_CLASS = "displayer-view-field";
+    var EDIT_FIELD_CLASS = "displayer-edit-field";
+
+    // Register the main event transforming the view displayer into an edit displayer
+    var openEditor = function(options) {
+      return function(e) {
+        e.stopPropagation();
+        // Close all other displayers in edit mode
+        closeAllEditors();
+        var tdElmt = $(this).parent().parent();
+        var viewDiv = $(tdElmt).find("."+VIEW_FIELD_CLASS);
+        var editDiv = $(tdElmt).find("."+EDIT_FIELD_CLASS);
+        $(editDiv).css({"minHeight" : $(viewDiv).outerHeight()+"px"});
+        $(editDiv).find("textarea").css({"minHeight" : $(viewDiv).outerHeight()-2+"px"});
+        $(viewDiv).hide();
+        $(editDiv).show();
+        $(editDiv).find("input, select, textarea").focus();
+        // Register the save action when the user presses Enter or Ctrl+Enter (for textareas)
+        var map = [];
+        $(editDiv).off('keydown keyup');
+        $(editDiv).on('keydown keyup', function(e) {
+          e = e || event; // to deal with IE
+          map[e.keyCode] = e.type == 'keydown';
+          if((map[13] &amp;&amp; map[17]) || (map[13] &amp;&amp; $(this).find("textarea").length == 0)) {
+            map = [];
+            DSP.saveField(viewDiv, editDiv, options);
+          }
+        });
+      }
+    }
+
+    // Display the edit button
+    var onElmtHover = function(options) {
+      return function() {
+        if($(this).find("."+RIGHT_PANEL_CLASS).length == 0) {
+          $(this).append('&lt;div class="'+RIGHT_PANEL_CLASS+'"&gt;'+EDIT_ICON+'&lt;/div&gt;');
+          $(this).find(".displayer-icon-edit").on('click', openEditor(options));
+        }
+        else {
+          $(this).find("."+RIGHT_PANEL_CLASS).show();
+        }
+      }
+    }
+    var offElmtHover = function() {
+      $(this).find("."+RIGHT_PANEL_CLASS).hide();
+    };
+
+    // Get the editor
+    var getEditedContent = function(propData, callback) {
+      $.ajax({
+        url : AJAX_RENDERER_PATH + "?xpage=plain",
+        type : "POST",
+        data : $.param(propData)
+      }).success(function(data) {
+        callback(data);
+      });
+    }
+
+    // Initialize the editors
+    $(rowList).each(function(idx, elmt){
+      var tableId = elmt.tableId;
+      var tableUrl = window["livetable_"+tableId].getUrl;
+      var classNameMatch = tableUrl.match('&amp;classname=([^&amp;]+)&amp;?');
+      var className = (classNameMatch.length &gt; 0) ? classNameMatch[1] : null
+      var data = elmt.data;
+      var docRef = data.doc_fullName;
+      var tBodyId = tableId+'-display';
+      var tr = $('#'+tBodyId).find('tr').get(idx);
+      $(tr).find('td').each(function(idx, elmt) {
+        var propName = $(elmt).attr('class').split(' ')[0] || '';
+        var oldContent = $(elmt).html();
+        $(elmt).html('&lt;div class="'+VIEW_FIELD_CLASS+'"&gt;'+oldContent+'&lt;/div&gt;&lt;div class="'+EDIT_FIELD_CLASS+'"&gt;&lt;/div&gt;');
+        var propData = {
+          "document" : docRef,
+          "obj" : className,
+          "number" : 0,
+          "prop" : propName
+        }
+        getEditedContent(propData, function(data) {
+          if(data !== "") {
+            $(elmt).addClass("displayer-livetable-cell");
+            $(elmt).find("."+EDIT_FIELD_CLASS).html(data);
+            $(elmt).hover(onElmtHover(propData), offElmtHover);
+          }
+        });
+      })
+    });
+
+    /**
+     * Get the id of a displayed div and return an object with all the sub-ids
+     */
+    var getPropDataFromDiv = function(div) {
+      var id = $(div).attr('data-xwiki-property');
+      var propData = decodeURI(id).replace('%26', '&amp;').split('_');
+      var docName, className, objNumber, propName;
+      if(propData.size() == 4) {
+        docName = propData[0].replace('%5F', '_');
+        className = propData[1].replace('%5F', '_');
+        objNumber = propData[2].replace('%5F', '_');
+        propName = propData[3].replace('%5F', '_');
+      }
+      return {
+        "document" : docName,
+        "obj" : className,
+        "number" : objNumber,
+        "prop" : propName
+      }
+    }
+
+    /**
+   * Close all edit displayers
+   */
+    var closeAllEditors = function() {
+      $('.'+VIEW_FIELD_CLASS).show();
+      $('.'+EDIT_FIELD_CLASS).hide();
+    }
+
+    // Close the edit displayers when the user clicks elsewhere in the page
+    $('html').click(closeAllEditors);
+    $('.'+EDIT_FIELD_CLASS).click(function(e){e.stopPropagation();});
+  });
+});</code>
+</property>
+<property>
+<name>EditLiveTable</name>
 </property>
 <property>
 <parse>1</parse>

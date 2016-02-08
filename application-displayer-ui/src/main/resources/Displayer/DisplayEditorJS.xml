@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xwikidoc reference="Displayer.DisplayEditorJS" locale="">
+<web>Displayer</web>
+<name>DisplayEditorJS</name>
+<language></language>
+<defaultLanguage></defaultLanguage>
+<translation>0</translation>
+<parent>Displayer.JS</parent>
+<creator>XWiki.Admin</creator>
+<author>XWiki.Admin</author>
+<customClass></customClass>
+<contentAuthor>XWiki.Admin</contentAuthor>
+<creationDate>1454940677000</creationDate>
+<date>1454949943000</date>
+<contentUpdateDate>1454949943000</contentUpdateDate>
+<version>1.1</version>
+<title>DisplayEditorJS</title>
+<defaultTemplate></defaultTemplate>
+<validationScript></validationScript>
+<comment>Imported from XAR</comment>
+<minorEdit>false</minorEdit>
+<syntaxId>xwiki/2.1</syntaxId>
+<hidden>false</hidden>
+<object>
+<class>
+<name>XWiki.JavaScriptExtension</name>
+<customClass></customClass>
+<customMapping></customMapping>
+<defaultViewSheet></defaultViewSheet>
+<defaultEditSheet></defaultEditSheet>
+<defaultWeb></defaultWeb>
+<nameField></nameField>
+<validationScript></validationScript>
+<cache>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>0</multiSelect>
+<name>cache</name>
+<number>5</number>
+<prettyName>Caching policy</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>|, </separators>
+<size>1</size>
+<unmodifiable>0</unmodifiable>
+<values>long|short|default|forbid</values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</cache>
+<code>
+<disabled>0</disabled>
+<name>code</name>
+<number>2</number>
+<prettyName>Code</prettyName>
+<rows>20</rows>
+<size>50</size>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+</code>
+<name>
+<disabled>0</disabled>
+<name>name</name>
+<number>1</number>
+<prettyName>Name</prettyName>
+<size>30</size>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+</name>
+<parse>
+<disabled>0</disabled>
+<displayFormType>select</displayFormType>
+<displayType>yesno</displayType>
+<name>parse</name>
+<number>4</number>
+<prettyName>Parse content</prettyName>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+</parse>
+<use>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>0</multiSelect>
+<name>use</name>
+<number>3</number>
+<prettyName>Use this extension</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>|, </separators>
+<size>1</size>
+<unmodifiable>0</unmodifiable>
+<values>currentPage|onDemand|always</values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</use>
+</class>
+<name>Displayer.DisplayEditorJS</name>
+<number>0</number>
+<className>XWiki.JavaScriptExtension</className>
+<guid>468d548f-32e1-45d2-bb52-022010fc7f13</guid>
+<property>
+<cache>long</cache>
+</property>
+<property>
+<code>require.config({
+    paths: { "xapp": "$!services.webjars.url('org.xwiki.contrib:api-structured-data-js', 'api-structured-data.js')" }
+});
+
+define(['xapp', 'jquery'], function(XApp, $) {
+
+  var viewDiv, editDiv, options;
+  var exports = {};
+
+  // Velocity code
+  var AJAX_RENDERER_PATH = "$xwiki.getDocument('Displayer.GetRenderedValue').getURL()";
+  // End Velocity code
+
+  var setViewDiv = function(div) {
+    viewDiv = div;
+  }
+  var setEditDiv = function(div) {
+    editDiv = div;
+  }
+  var setOptions = function(opt) {
+    options = opt;
+  }
+
+  /**
+   * Start the saving process
+   * - Get the item
+   * - Change and store its value
+   * - Display the rendered content
+   */
+  var saveField = exports.saveField = function(viewDiv, editDiv, options) {
+    setViewDiv(viewDiv);
+    setEditDiv(editDiv);
+    setOptions(options);
+    // Get the property data
+    var className = options.obj;
+    var docName = options.document;
+    var objNumber = options.number;
+    var propName = options.prop;
+    // Get the application related to the object class in the API
+    var app = XApp.getApp(className);
+    // Get the value of the field, and for lists the label associated
+    var inputElmt = $(editDiv).find("input, select, textarea");
+    $(inputElmt).attr("readonly", "readonly");
+    var valueInpt = $(inputElmt).val();
+    var valueLabel = null;
+    if($(inputElmt).is("select")) {
+      valueLabel = $(inputElmt).find(":selected").text();
+    }
+    // Get the item from the API
+    var itemId = docName+'|'+objNumber;
+    app.getItem(itemId, callback_item(propName, valueInpt, valueLabel, app, itemId));
+  }
+
+  /**
+   * Actions to execute once "app.getItem()" is completed :
+   * - Change the value of the selected field
+   * - Store the item with the API
+   * - If we have a label, skip the rendering step and display the new value
+   */
+  var callback_item = function(propName, valueInpt, valueLabel, app, itemId) {
+    return function(err, data) {
+      if(err) {throw err;}
+      data[propName] = valueInpt;
+      // Display a dash when the new value is empty : an empty value would hide the viewdiv permanently!
+      if(valueInpt == "") {
+        valueInpt = '-';
+      }
+      // Check if we have a label for the value (List, checkbox, radio, etc.)
+      // If there is no label, the content must be rendered (velocity, wiki sytax, ...)
+      var toRender = (valueLabel === null);
+      var valueText = toRender ? valueInpt : valueLabel;
+      if(!toRender || valueText === '') { // No rendering necessary
+        callback_render(null, valueText);
+        valueInpt = null;
+      }
+      app.storeItem(itemId, data, callback_save(toRender));
+    }
+  }
+  /**
+   * Actions to execute once the modifications are saved in the wiki :
+   * - Display the notification at the bottom of the screen
+   * - Get the rendered value of the field
+   */
+  var callback_save = function(getRendered) {
+    return function(err, data) {
+      if(err) {throw err;}
+      $('#dataDisplayerNotifications').html('&lt;div class="xnotification-wrapper"&gt;&lt;div class="xnotification xnotification-done"&gt;Saved&lt;/div&gt;&lt;/div&gt;').delay(1000).queue(function(n) {
+        $(this).html('');
+        n();
+      });
+      if(getRendered) {
+        getRenderedContent(callback_render);
+      }
+    }
+  }
+  var getRenderedContent = function(callback) {
+    $.ajax({
+      url : AJAX_RENDERER_PATH + "?xpage=plain",
+      type : "POST",
+      data : $.param(options)
+    }).success(function(data) {
+      callback(data);
+    });
+  }
+  /**
+   * Actions to execute once we've received the final value :
+   * - Change the viewDiv content
+   * - Display the viewDiv and hide the editDiv
+   */
+  var callback_render = function(htmlContent, textContent) {
+    if(textContent) {
+      $(viewDiv).find("p").text(textContent);
+    }
+    else {
+      $(viewDiv).html(htmlContent);
+    }
+    $(viewDiv).show();
+    $(editDiv).find("input, select, textarea").removeAttr("readonly");
+    $(editDiv).hide();
+  }
+
+  return exports;
+});</code>
+</property>
+<property>
+<name></name>
+</property>
+<property>
+<parse>1</parse>
+</property>
+<property>
+<use>onDemand</use>
+</property>
+</object>
+<content></content></xwikidoc>

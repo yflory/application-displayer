@@ -11,13 +11,13 @@
 <customClass></customClass>
 <contentAuthor>XWiki.Admin</contentAuthor>
 <creationDate>1454518064000</creationDate>
-<date>1454924680000</date>
-<contentUpdateDate>1454924680000</contentUpdateDate>
-<version>151.1</version>
+<date>1454949943000</date>
+<contentUpdateDate>1454949943000</contentUpdateDate>
+<version>1.1</version>
 <title>CSS</title>
 <defaultTemplate></defaultTemplate>
 <validationScript></validationScript>
-<comment></comment>
+<comment>Imported from XAR</comment>
 <minorEdit>false</minorEdit>
 <syntaxId>xwiki/2.1</syntaxId>
 <hidden>true</hidden>
@@ -175,12 +175,12 @@ div[data-xwiki-property-edit] &gt; input, div[data-xwiki-property-edit] &gt; tex
 /**
  * Panel icons
  */
-.dynamic-displayer-cross span, .dynamic-displayer-check span, .dynamic-displayer-edit span {
+.displayer-icon-cross span, .displayer-icon-check span, .displayer-icon-edit span {
   height : 14px;
   width : 14px;
   text-align: center;
 }
-.dynamic-displayer-cross, .dynamic-displayer-check, .dynamic-displayer-edit {
+.displayer-icon-cross, .displayer-icon-check, .displayer-icon-edit {
   height : 14px;
   width : 14px;
   cursor: pointer;
@@ -194,6 +194,133 @@ div[data-xwiki-property-edit] &gt; input, div[data-xwiki-property-edit] &gt; tex
 </property>
 <property>
 <parse>0</parse>
+</property>
+<property>
+<use>always</use>
+</property>
+</object>
+<object>
+<class>
+<name>XWiki.StyleSheetExtension</name>
+<customClass></customClass>
+<customMapping></customMapping>
+<defaultViewSheet></defaultViewSheet>
+<defaultEditSheet></defaultEditSheet>
+<defaultWeb></defaultWeb>
+<nameField></nameField>
+<validationScript></validationScript>
+<cache>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>0</multiSelect>
+<name>cache</name>
+<number>6</number>
+<prettyName>Caching policy</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>|, </separators>
+<size>1</size>
+<unmodifiable>0</unmodifiable>
+<values>long|short|default|forbid</values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</cache>
+<code>
+<disabled>0</disabled>
+<name>code</name>
+<number>3</number>
+<prettyName>Code</prettyName>
+<rows>20</rows>
+<size>50</size>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.TextAreaClass</classType>
+</code>
+<contentType>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>0</multiSelect>
+<name>contentType</name>
+<number>1</number>
+<prettyName>Content Type</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>|, </separators>
+<size>1</size>
+<unmodifiable>0</unmodifiable>
+<values>CSS|LESS</values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</contentType>
+<name>
+<disabled>0</disabled>
+<name>name</name>
+<number>2</number>
+<prettyName>Name</prettyName>
+<size>30</size>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.StringClass</classType>
+</name>
+<parse>
+<disabled>0</disabled>
+<displayFormType>select</displayFormType>
+<displayType>yesno</displayType>
+<name>parse</name>
+<number>5</number>
+<prettyName>Parse content</prettyName>
+<unmodifiable>0</unmodifiable>
+<classType>com.xpn.xwiki.objects.classes.BooleanClass</classType>
+</parse>
+<use>
+<cache>0</cache>
+<disabled>0</disabled>
+<displayType>select</displayType>
+<multiSelect>0</multiSelect>
+<name>use</name>
+<number>4</number>
+<prettyName>Use this extension</prettyName>
+<relationalStorage>0</relationalStorage>
+<separator> </separator>
+<separators>|, </separators>
+<size>1</size>
+<unmodifiable>0</unmodifiable>
+<values>currentPage|onDemand|always</values>
+<classType>com.xpn.xwiki.objects.classes.StaticListClass</classType>
+</use>
+</class>
+<name>Displayer.CSS</name>
+<number>1</number>
+<className>XWiki.StyleSheetExtension</className>
+<guid>1f26d1a7-edbe-4cf1-bbe1-a9b5c04b0153</guid>
+<property>
+<cache>long</cache>
+</property>
+<property>
+<code>.displayer-edit-field {
+  display: none;
+}
+
+.dynamic-displayer-ltRightPanel {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  height: 20px;
+  background-color: #CCCCCC;
+  width: 20px;
+  padding : 0px 3px;
+}
+
+.displayer-livetable-cell {
+  position: relative;
+}</code>
+</property>
+<property>
+<contentType>CSS</contentType>
+</property>
+<property>
+<name>EditLiveTable</name>
+</property>
+<property>
+<parse></parse>
 </property>
 <property>
 <use>always</use>
